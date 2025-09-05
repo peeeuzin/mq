@@ -1,0 +1,2 @@
+defmodule Mq do
+end
