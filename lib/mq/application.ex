@@ -6,7 +6,8 @@ defmodule Mq.Application do
     port = String.to_integer(System.get_env("MQ_PORT") || "6932")
 
     children = [
-      {Mq.Worker, []},
+      Mq.Repo,
+      Mq.Worker,
       {Task.Supervisor, name: Mq.Server.TaskSupervisor},
       Supervisor.child_spec({Task, fn -> Mq.Server.accept(port) end}, restart: :permanent)
     ]
