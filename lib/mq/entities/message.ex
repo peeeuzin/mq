@@ -7,6 +7,7 @@ defmodule Mq.Entities.Message do
 
   schema "messages" do
     field :body, :binary
+    field :ack, :boolean, default: false
     belongs_to :queue, Mq.Entities.Queue
 
     timestamps()
@@ -14,7 +15,7 @@ defmodule Mq.Entities.Message do
 
   def changeset(message, attrs \\ %{}) do
     message
-    |> cast(attrs, [:body, :queue_id])
+    |> cast(attrs, [:body, :queue_id, :ack])
     |> validate_required([:body, :queue_id])
   end
 end

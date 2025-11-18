@@ -40,19 +40,29 @@ defmodule Mq.Server do
     |> handle_command(client)
   end
 
+  defp execute(:closed, _client) do
+    :ok
+  end
+
   defp handle_command(["CREATE", queue_name], client) do
     if !Mq.Worker.has_queue?(queue_name) do
-      Mq.Worker.create_queue(queue_name)
-      :gen_tcp.send(client, "OK\n")
+      :gen_tcp.send(client, Mq.Worker.create_queue(queue_name) |> to_string())
     else
       :gen_tcp.send(client, "ERROR: Queue already exists\n")
     end
   end
 
-  defp handle_command(["PUSH", priority, queue_name, item], client) do
+  defp handle_command(["PUSH", queue_name, item], client) do
     if Mq.Worker.has_queue?(queue_name) do
-      Mq.Worker.push(item, String.to_existing_atom(priority), queue_name)
-      :gen_tcp.send(client, "OK\n")
+      :gen_tcp.send(client, Mq.Worker.push(item, queue_name) |> to_string())
+    else
+      :gen_tcp.send(client, "ERROR: Queue does not exist\n")
+    end
+  end
+
+  defp handle_command(["SUBSCRIBE", queue_name], client) do
+    if Mq.Worker.has_queue?(queue_name) do
+      :gen_tcp.send(client, Mq.Worker.subscribe(queue_name, client) |> to_string())
     else
       :gen_tcp.send(client, "ERROR: Queue does not exist\n")
     end
